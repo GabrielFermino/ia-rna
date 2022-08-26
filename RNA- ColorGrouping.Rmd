@@ -1,0 +1,55 @@
+---
+title: "RNA - GabrielFermino; TaylorByk; JoãoReolon"
+output: html_document
+date: '2022-07-03'
+---
+
+```{r}
+library(kohonen)
+```
+
+# Gerando um conjunto de dados na escala RGB
+```{r}
+sample.size <- 5000
+
+sample.rgb <- as.data.frame(matrix(nrow = sample.size, ncol = 3))
+colnames(sample.rgb) <- c('R', 'G', 'B')
+
+sample.rgb$R <- sample(0:255, sample.size, replace = T)
+sample.rgb$G <- sample(0:255, sample.size, replace = T)
+sample.rgb$B <- sample(0:255, sample.size, replace = T)
+```
+
+# Definindo um mapa espacial e treinando uma rede neural SOM (RN-SOM)
+```{r}
+gridSize <- ceiling(sample.size ^ (1/2.5)) # numero de neuronios = gridSize ^ 2
+som.grid <- somgrid(xdim = gridSize, ydim = gridSize, topo = 'hexagonal', neighbourhood.fct = c('bubble'), toroidal = TRUE)
+som.model <- som(data.matrix(sample.rgb), grid = som.grid, rlen = 150, alpha = c(0.05, 0.01))
+```
+
+# Extraindo informações da RN-SOM treinada
+```{r}
+som.events <- som.model$codes[[1]]
+som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255)
+som.dist <- as.matrix(dist(som.events))
+```
+
+# Exemplo de dado não treinado
+```{r}
+plot(som.model,
+     type = 'mapping',
+     bg = som.events.colors[sample.int(length(som.events.colors), size = length(som.events.colors))],
+     keepMargins = F,
+     col = NA,
+     main = '')
+```
+
+# Gerando o plot treinado
+```{r}
+plot(som.model,
+     type = 'mapping',
+     bg = som.events.colors,
+     keepMargins = F,
+     col = NA,
+     main = '')
+```
